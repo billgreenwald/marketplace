@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "marketplace",
+  "description": "Bill Greenwald's Claude Code plugin marketplace.",
+  "owner": {
+    "name": "Bill Greenwald"
+  },
+  "plugins": [
+    {
+      "name": "finish-update",
+      "description": "Bump version (major/minor/bugfix/rev), update docs, and push to git. Optionally build and publish a GitHub release.",
+      "author": {
+        "name": "Bill Greenwald"
+      },
+      "source": "./plugins/finish-update",
+      "category": "development",
+      "version": "1.0.0"
+    }
+  ]
+}

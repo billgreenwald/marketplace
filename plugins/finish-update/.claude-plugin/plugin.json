@@ -1,0 +1,8 @@
+{
+  "name": "finish-update",
+  "description": "Bump version (major/minor/bugfix/rev), update docs, and push to git. Optionally build and publish a GitHub release.",
+  "author": {
+    "name": "Bill Greenwald"
+  },
+  "version": "1.0.0"
+}
