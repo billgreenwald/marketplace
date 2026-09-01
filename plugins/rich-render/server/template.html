@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rich-render</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<link rel="stylesheet" href="/assets/style.css">
+<script src="/assets/marked/marked.min.js"></script>
+<script src="/assets/katex/katex.min.js"></script>
+<script src="/assets/mermaid/mermaid.min.js"></script>
+<script src="/assets/app.js"></script>
+<script>RichRender.applyStoredTheme();</script>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="home" href="/">&#8592; rich-render</a>
+  <span id="kind" class="badge" hidden></span>
+  <span class="spacer"></span>
+  <span id="stamp" class="stamp"></span>
+  <button class="btn" id="copy">Copy source</button>
+  <button class="btn" id="theme">Theme</button>
+</div>
+
+<div class="shell" id="shell">
+  <main class="doc">
+    <header class="doc-head">
+      <h1 id="title">Loading&#8230;</h1>
+      <p class="summary" id="summary" hidden></p>
+    </header>
+    <article class="body" id="body"></article>
+  </main>
+  <aside class="toc" id="toc"></aside>
+</div>
+
+<script>
+(function () {
+  const R = window.RichRender;
+  const docPath = decodeURIComponent(location.pathname.replace(/^\/doc\//, '').replace(/\/$/, ''));
+  const bodyEl = document.getElementById('body');
+  const shellEl = document.getElementById('shell');
+  const tocEl = document.getElementById('toc');
+
+  let lastMtime = 0;
+  let lastSource = '';
+  let scrollHandler = null;
+
+  R.initMermaid();
+
+  async function load(isRefresh) {
+    let source;
+    try {
+      const res = await fetch('/raw/' + docPath + '.md?t=' + Date.now(), { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      source = await res.text();
+    } catch (err) {
+      bodyEl.innerHTML = '<div class="empty">Could not load <code>' +
+        R.escapeHtml(docPath) + '.md</code><br>' + R.escapeHtml(String(err.message || err)) + '</div>';
+      document.getElementById('title').textContent = 'Document not found';
+      return;
+    }
+    if (isRefresh && source === lastSource) return;
+    lastSource = source;
+
+    const { meta, body } = R.splitFrontMatter(source);
+    const firstHeading = /^#\s+(.+)$/m.exec(body);
+    const title = meta.title || (firstHeading ? firstHeading[1].trim() : docPath.split('/').pop());
+
+    document.title = title + ' · rich-render';
+    document.getElementById('title').textContent = title;
+
+    const summaryEl = document.getElementById('summary');
+    summaryEl.textContent = meta.summary || '';
+    summaryEl.hidden = !meta.summary;
+
+    const kindEl = document.getElementById('kind');
+    kindEl.textContent = meta.kind || '';
+    kindEl.hidden = !meta.kind;
+
+    // Drop a leading H1 that just repeats the title we already show.
+    let markdown = body;
+    if (firstHeading && firstHeading[1].trim() === title) {
+      markdown = body.slice(0, firstHeading.index) + body.slice(firstHeading.index + firstHeading[0].length);
+    }
+
+    const scrollY = window.scrollY;
+    bodyEl.innerHTML = R.markdownToHtml(markdown);
+
+    const headings = R.buildToc(bodyEl, tocEl, shellEl);
+    if (scrollHandler) window.removeEventListener('scroll', scrollHandler);
+    scrollHandler = R.trackToc(headings, tocEl);
+    if (scrollHandler) window.addEventListener('scroll', scrollHandler, { passive: true });
+
+    await R.runMermaid(bodyEl);
+
+    if (isRefresh) {
+      window.scrollTo(0, scrollY);
+      R.toast('Updated');
+    } else if (location.hash) {
+      const target = document.getElementById(location.hash.slice(1));
+      if (target) target.scrollIntoView();
+    }
+  }
+
+  async function poll() {
+    try {
+      const res = await fetch('/__rich_render/poll?doc=' + encodeURIComponent(docPath) +
+                              '&mtime=' + lastMtime, { cache: 'no-store' });
+      const data = await res.json();
+      if (data.exists) {
+        const stamp = document.getElementById('stamp');
+        stamp.textContent = 'updated ' + R.relativeTime(new Date(data.mtime * 1000).toISOString());
+        if (data.changed) {
+          const first = lastMtime === 0;
+          lastMtime = data.mtime;
+          await load(!first);
+        }
+      }
+    } catch (err) { /* server stopped; keep showing what we have */ }
+  }
+
+  document.getElementById('theme').addEventListener('click', () => {
+    R.toggleTheme(async () => {
+      R.initMermaid();
+      bodyEl.querySelectorAll('pre.mermaid').forEach((el) => {
+        el.removeAttribute('data-processed');
+        if (el.dataset.src) el.textContent = el.dataset.src;
+      });
+      lastSource = '';
+      await load(false);
+    });
+  });
+
+  document.getElementById('copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(lastSource);
+      R.toast('Markdown source copied');
+    } catch (err) {
+      R.toast('Copy blocked by the browser');
+    }
+  });
+
+  poll();
+  setInterval(poll, 1500);
+})();
+</script>
+</body>
+</html>

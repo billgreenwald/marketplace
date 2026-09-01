@@ -15,6 +15,16 @@
       "source": "./plugins/finish-update",
       "category": "development",
       "version": "1.0.0"
+    },
+    {
+      "name": "rich-render",
+      "description": "Auto-renders plans, mathematical derivations, and logic or Bayes diagrams as rich HTML documents (KaTeX + Mermaid) served on localhost, instead of plain terminal markdown.",
+      "author": {
+        "name": "Bill Greenwald"
+      },
+      "source": "./plugins/rich-render",
+      "category": "productivity",
+      "version": "1.0.0"
     }
   ]
 }

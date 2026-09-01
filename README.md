@@ -28,6 +28,26 @@ Use:
 
 See [`plugins/finish-update/skills/finish-update/SKILL.md`](plugins/finish-update/skills/finish-update/SKILL.md) for full behavior.
 
+### `rich-render`
+
+Writes plans, mathematical derivations, and logic or Bayes diagrams as rich HTML documents — LaTeX typeset with KaTeX, flowcharts drawn with Mermaid — served on localhost instead of mangled into terminal markdown. Triggers on its own; math always renders, plans and diagrams render when they are substantial.
+
+Install:
+
+```
+/plugin install rich-render@marketplace
+```
+
+Use: nothing to type — ask for a plan or a derivation. To control it:
+
+```
+/rich-render status
+/rich-render port 3005
+/rich-render render <topic>
+```
+
+Runs offline (KaTeX, Mermaid and marked are vendored) on the Python standard library alone. See [`plugins/rich-render/README.md`](plugins/rich-render/README.md).
+
 ## Adding more plugins
 
 Each plugin lives under `plugins/<name>/` with its own `.claude-plugin/plugin.json` manifest and `skills/`, `commands/`, or `agents/` directories, and is registered in `.claude-plugin/marketplace.json` at the repo root.
