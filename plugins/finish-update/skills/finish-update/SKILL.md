@@ -12,7 +12,7 @@ Release flag: **$2** (if `release`, build artifact and publish versioned GitHub 
 
 Accepted values for $1: `major`, `minor`, `bugfix` (also accepts `patch` as alias for `bugfix`), `rev`, `branch`.
 
-- `rev` means: **keep the version number the same**, but still update the changelog, architecture docs (if needed), commit, re-tag, and push.
+- `rev` means: **keep the version number the same**, but still update the changelog, architecture docs, commit, re-tag, and push.
 - `branch` means: **keep the version number**, append the current git branch name as a suffix (e.g. `v2.3.5_natdex-support`), do NOT modify any version files or changelog, push the current branch, build the artifact, and optionally publish a pre-release. Skip Steps 3–6.
 - If $1 is empty or not one of the above, stop and ask the user which type they want.
 - If $2 is `release`, additional steps (build + versioned GitHub release) run after the git push.
@@ -115,7 +115,7 @@ Ask the user if they want to provide specific changelog entries before stubbing 
 
 ## Step 6: Update Architecture / Documentation Files
 
-Check `CLAUDE-architecture.md`, `ARCHITECTURE.md`, or any docs that reference the version number or describe features that have changed. Update them if needed.
+Check `CLAUDE-architecture.md`, `ARCHITECTURE.md`, or any docs that reference the version number or describe features that have changed. Update them.
 
 This step applies for all bump types including `rev`.
 
